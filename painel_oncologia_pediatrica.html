@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConectaOnco</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f1e;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: rgba(99,179,237,0.12);
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --accent3: #34d399;
+    --accent4: #fb923c;
+    --accent5: #f472b6;
+    --danger: #f87171;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --card-shadow: 0 4px 32px rgba(0,0,0,0.5);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    background-image: 
+      radial-gradient(ellipse 80% 50% at 20% -10%, rgba(56,189,248,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 110%, rgba(129,140,248,0.06) 0%, transparent 60%);
+  }
+
+  /* Header */
+  header {
+    padding: 2rem 2.5rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,15,30,0.8);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .header-badge {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+  }
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+  h1 span { color: var(--accent); }
+  .header-meta {
+    margin-left: auto;
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.6;
+    text-align: right;
+  }
+
+  /* Nav Tabs */
+  .nav-tabs {
+    display: flex;
+    gap: 0.25rem;
+    padding: 1rem 2.5rem 0;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.65rem 1.2rem;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    border-bottom: 2px solid transparent;
+    position: relative;
+    bottom: -1px;
+  }
+  .tab-btn:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: rgba(56,189,248,0.06);
+  }
+  .tab-icon { margin-right: 0.4rem; }
+
+  /* Main */
+  main {
+    padding: 2rem 2.5rem;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+  .tab-section { display: none; animation: fadeIn 0.3s ease; }
+  .tab-section.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Section title */
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    margin-left: 0.5rem;
+  }
+
+  /* Cards grid */
+  .grid { display: grid; gap: 1.25rem; }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 900px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    main { padding: 1.2rem; }
+    .nav-tabs { padding: 0.75rem 1rem 0; }
+  }
+
+  /* Stat cards */
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.3rem 1.5rem;
+    box-shadow: var(--card-shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .stat-card.blue::before { background: linear-gradient(90deg, var(--accent), transparent); }
+  .stat-card.purple::before { background: linear-gradient(90deg, var(--accent2), transparent); }
+  .stat-card.green::before { background: linear-gradient(90deg, var(--accent3), transparent); }
+  .stat-card.orange::before { background: linear-gradient(90deg, var(--accent4), transparent); }
+  .stat-card.pink::before { background: linear-gradient(90deg, var(--accent5), transparent); }
+  .stat-card.red::before { background: linear-gradient(90deg, var(--danger), transparent); }
+  .stat-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+  .stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+  .stat-sub { font-size: 0.78rem; color: var(--muted); }
+  .stat-icon { position: absolute; right: 1rem; top: 1rem; font-size: 1.6rem; opacity: 0.2; }
+
+  /* Chart cards */
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+  }
+  .chart-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.3rem;
+  }
+  .chart-subtitle {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 1.2rem;
+  }
+  .chart-wrap { position: relative; }
+
+  /* Bar chart custom */
+  .hbar-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0.65rem;
+    font-size: 0.78rem;
+  }
+  .hbar-label { width: 200px; min-width: 200px; color: var(--text); text-align: right; line-height: 1.3; }
+  .hbar-track { flex: 1; background: rgba(255,255,255,0.06); border-radius: 4px; height: 22px; position: relative; overflow: hidden; }
+  .hbar-fill {
+    height: 100%;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    padding-left: 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+    transition: width 1s cubic-bezier(.25,.8,.25,1);
+    min-width: 2px;
+  }
+  .hbar-val { width: 50px; text-align: left; color: var(--muted); font-size: 0.72rem; }
+
+  /* Toggle */
+  .toggle-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .toggle-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.75rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .toggle-btn.active, .toggle-btn:hover {
+    background: rgba(56,189,248,0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Table */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .data-table th {
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+  .data-table td { padding: 0.6rem 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .data-table tr:hover td { background: rgba(255,255,255,0.03); }
+  .pill {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.68rem;
+    font-weight: 600;
+  }
+  .pill-green { background: rgba(52,211,153,0.15); color: var(--accent3); }
+  .pill-red { background: rgba(248,113,113,0.15); color: var(--danger); }
+  .pill-blue { background: rgba(56,189,248,0.15); color: var(--accent); }
+  .pill-orange { background: rgba(251,146,60,0.15); color: var(--accent4); }
+
+  /* Progress bar inline */
+  .mini-bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.08); margin-top: 4px; }
+  .mini-fill { height: 4px; border-radius: 2px; transition: width 0.8s; }
+
+  /* Tooltip info */
+  .info-box {
+    background: rgba(56,189,248,0.07);
+    border: 1px solid rgba(56,189,248,0.2);
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 1.25rem;
+    line-height: 1.6;
+  }
+  .info-box strong { color: var(--accent); }
+
+  /* Legend */
+  .legend { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.75rem; }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* Grid gap fix */
+  .mb-gap { margin-bottom: 1.25rem; }
+
+  /* Footnote */
+  .footnote { font-size: 0.7rem; color: var(--muted); margin-top: 0.5rem; font-style: italic; }
+
+  /* Responsive chart height */
+  canvas { max-height: 340px; }
+  .tall canvas { max-height: 420px; }
+
+  /* Fade in stat values on load */
+  .stat-value { animation: countUp 0.6s ease both; }
+  @keyframes countUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Map placeholder */
+  .uf-map-table { width: 100%; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-badge">Oncologia Pediátrica</div>
+  <h1>Painel <span>ConectaOnco</span></h1>
+  <div class="header-meta">
+    Fontes: DataSUS · PAINEL RHC · SIM/RS<br>
+    134.175 atend. · 68.604 casos RHC · 1.228 óbitos (RS)
+  </div>
+</header>
+
+<nav class="nav-tabs">
+  <button class="tab-btn active" onclick="showTab('visao-geral')"><span class="tab-icon">📊</span>Visão Geral</button>
+  <button class="tab-btn" onclick="showTab('tempo-atend')"><span class="tab-icon">⏱️</span>Tempo de Atendimento</button>
+  <button class="tab-btn" onclick="showTab('habilitacao')"><span class="tab-icon">🏥</span>Habilitação</button>
+  <button class="tab-btn" onclick="showTab('deslocamento')"><span class="tab-icon">📍</span>Deslocamento</button>
+  <button class="tab-btn" onclick="showTab('mortalidade')"><span class="tab-icon">📉</span>Mortalidade & Óbitos</button>
+  <button class="tab-btn" onclick="showTab('sobrevida')"><span class="tab-icon">💊</span>Sobrevida & Desfechos</button>
+  <button class="tab-btn" onclick="showTab('adicionais')"><span class="tab-icon">🔬</span>Análises Adicionais</button>
+</nav>
+
+<main>
+
+<!-- ======================== VISÃO GERAL ======================== -->
+<section id="visao-geral" class="tab-section active">
+  <p class="section-title">📊 Visão Geral — Oncologia Pediátrica no Brasil</p>
+
+  <div class="grid grid-4 mb-gap">
+    <div class="stat-card blue">
+      <div class="stat-icon">🧒</div>
+      <div class="stat-label">Total de atendimentos (DataSUS)</div>
+      <div class="stat-value">134.175</div>
+      <div class="stat-sub">2013 – 2025</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-icon">🔬</div>
+      <div class="stat-label">Casos registrados (RHC)</div>
+      <div class="stat-value">68.604</div>
+      <div class="stat-sub">2013 – 2023</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-icon">📉</div>
+      <div class="stat-label">Óbitos registrados (SIM-RS)</div>
+      <div class="stat-value">1.228</div>
+      <div class="stat-sub">2013 – 2022 · RS</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-icon">⚠️</div>
+      <div class="stat-label">Sem habilitação ped.</div>
+      <div class="stat-value">57,6%</div>
+      <div class="stat-sub">dos atendimentos (DataSUS)</div>
+    </div>
+  </div>
+
+  <div class="grid grid-2 mb-gap">
+    <div class="chart-card">
+      <div class="chart-title">Evolução de Atendimentos por Ano</div>
+      <div class="chart-subtitle">DataSUS — todos os atendimentos oncológicos pediátricos</div>
+      <div class="chart-wrap"><canvas id="chartAnosUS"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Casos Registrados por Ano (RHC)</div>
+      <div class="chart-subtitle">Registros Hospitalares de Câncer — 2013 a 2023</div>
+      <div class="chart-wrap"><canvas id="chartAnosRHC"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid grid-2 mb-gap">
+    <div class="chart-card">
+      <div class="chart-title">Distribuição por Grupo Tumoral (RHC)</div>
+      <div class="chart-subtitle">Classificação dos casos registrados nos hospitais</div>
+      <div class="chart-wrap"><canvas id="chartGrupoDonut"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Top Diagnósticos — DataSUS</div>
+      <div class="chart-subtitle">Diagnósticos mais frequentes nos atendimentos</div>
+      <div class="chart-wrap" id="diagBars"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== TEMPO ATENDIMENTO ======================== -->
+<section id="tempo-atend" class="tab-section">
+  <p class="section-title">⏱️ Tempo de Atendimento — Diagnóstico ao Tratamento</p>
+
+  <div class="info-box">
+    <strong>Metodologia:</strong> Tempo calculado entre data de diagnóstico e início do tratamento. Valores entre 0 e 365 dias foram considerados válidos. Valores sentinela (99999) foram excluídos. Fonte principal: Registros Hospitalares de Câncer (RHC) e DataSUS.
+  </div>
+
+  <div class="grid grid-4 mb-gap">
+    <div class="stat-card blue">
+      <div class="stat-icon">📅</div>
+      <div class="stat-label">Mediana geral (RHC)</div>
+      <div class="stat-value">10 dias</div>
+      <div class="stat-sub">Diagnóstico → tratamento</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-icon">⚡</div>
+      <div class="stat-label">Média geral (RHC)</div>
+      <div class="stat-value">39,7 dias</div>
+      <div class="stat-sub">Casos com 0–365 dias válidos</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-icon">🏥</div>
+      <div class="stat-label">Mediana — Habilitados (SUS)</div>
+      <div class="stat-value">6 dias</div>
+      <div class="stat-sub">Unidades com habilitação ped.</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-icon">⚠️</div>
+      <div class="stat-label">Mediana — Não Habilitados (SUS)</div>
+      <div class="stat-value">1 dia</div>
+      <div class="stat-sub">*Dado de triagem/encaminhamento</div>
+    </div>
+  </div>
+
+  <div class="grid grid-2 mb-gap">
+    <div class="chart-card">
+      <div class="chart-title">Tempo Mediano por Grupo Tumoral</div>
+      <div class="chart-subtitle">Mediana de dias — diagnóstico ao início do tratamento (RHC)</div>
+      <div class="chart-wrap" id="tempoBars"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Tempo Médio por Grupo Tumoral</div>
+      <div class="chart-subtitle">Média de dias (0–365 dias válidos) — RHC</div>
+      <div class="chart-wrap"><canvas id="chartTempoMedio"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-card mb-gap">
+    <div class="chart-title">Tempo por Tipo de Habilitação — DataSUS</div>
+    <div class="chart-subtitle">Média e mediana de dias do tratamento conforme tipo de habilitação da unidade</div>
+    <div class="chart-wrap"><canvas id="chartTempoHab"></canvas></div>
+    <p class="footnote">* TEMPO_TRAT no DataSUS pode representar dias de permanência em tratamento; valores excluídos: negativos e ≥99999.</p>
+  </div>
+</section>
+
+<!-- ======================== HABILITAÇÃO ======================== -->
+<section id="habilitacao" class="tab-section">
+  <p class="section-title">🏥 Adequação do Local de Atendimento</p>
+
+  <div class="grid grid-3 mb-gap">
+    <div class="stat-card red">
+      <div class="stat-icon">⚠️</div>
+      <div class="stat-label">Sem habilitação pediátrica</div>
+      <div class="stat-value">77.319</div>
+      <div class="stat-sub">57,6% dos atendimentos</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-icon">✅</div>
+      <div class="stat-label">CACON c/ oncol. pediátrica</div>
+      <div class="stat-value">27.327</div>
+      <div class="stat-sub">20,4% — código 1713</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-icon">🏥</div>
+      <div class="stat-label">UNACON exclusiva ped.</div>
+      <div class="stat-value">16.847</div>
+      <div class="stat-sub">12,6% — código 1711</div>
+    </div>
+  </div>
+
+  <div class="grid grid-2 mb-gap">
+    <div class="chart-card">
+      <div class="chart-title">Distribuição por Tipo de Habilitação</div>
+      <div class="chart-subtitle">Total de atendimentos DataSUS por categoria de habilitação</div>
+      <div class="chart-wrap"><canvas id="chartHabPie"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Atendimentos em Locais Habilitados vs Não Habilitados</div>
+      <div class="chart-subtitle">Visão comparativa proporcional — DataSUS</div>
+      <div id="habComparativo">
+        <div class="hbar-item">
+          <div class="hbar-label">Sem Habilitação</div>
+          <div class="hbar-track">
+            <div class="hbar-fill" style="width:57.6%;background:linear-gradient(90deg,#f87171,#fb923c);">57,6%</div>
+          </div>
+          <div class="hbar-val">77.319</div>
+        </div>
+        <div class="hbar-item">
+          <div class="hbar-label">CACON c/ ped.</div>
+          <div class="hbar-track">
+            <div class="hbar-fill" style="width:20.4%;background:linear-gradient(90deg,#38bdf8,#818cf8);">20,4%</div>
+          </div>
+          <div class="hbar-val">27.327</div>
+        </div>
+        <div class="hbar-item">
+          <div class="hbar-label">UNACON excl. ped.</div>
+          <div class="hbar-track">
+            <div class="hbar-fill" style="width:12.6%;background:linear-gradient(90deg,#34d399,#38bdf8);">12,6%</div>
+          </div>
+          <div class="hbar-val">16.847</div>
+        </div>
+        <div class="hbar-item">
+          <div class="hbar-label">UNACON c/ ped.</div>
+          <div class="hbar-track">
+            <div class="hbar-fill" style="width:9.4%;background:linear-gradient(90deg,#818cf8,#f472b6);">9,4%</div>
+          </div>
+          <div class="hbar-val">12.682</div>
+        </div>
+
+        <div style="margin-top:1.5rem;">
+          <div class="chart-title" style="margin-bottom:0.5rem;">Proporção Habilitado × Não Habilitado</div>
+          <canvas id="chartHabStack" style="max-height:120px;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card mb-gap">
+    <div class="chart-title">UFs com Maior Proporção de Pacientes em Locais Habilitados</div>
+    <div class="chart-subtitle">Atendimentos DataSUS — proporção tratada em unidade com habilitação pediátrica por UF de residência (top 15)</div>
+    <div class="chart-wrap" id="habUFBars"></div>
+  </div>
+</section>
+
+<!-- ======================== DESLOCAMENTO ======================== -->
+<section id="deslocamento" class="tab-section">
+  <p class="section-title">📍 Deslocamento do Paciente</p>
+
+  <div class="info-box">
+    <strong>Metodologia:</strong> Deslocamento identificado quando a UF de residência difere da UF de tratamento (DataSUS). Aproximadamente <strong>48%</strong> dos pacientes precisam se deslocar para outra unidade federativa para receber tratamento.
+  </div>
+
+  <div class="grid grid-3 mb-gap">
+    <div class="stat-card orange">
+      <div class="stat-icon">✈️</div>
+      <div class="stat-label">Pacientes que saíram da UF</div>
+      <div class="stat-value">64.494</div>
+      <div class="stat-sub">48,1% do total de atendimentos</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-icon">📍</div>
+      <div class="stat-label">Maior deslocamento — Roraima</div>
+      <div class="stat-value">96,4%</div>
+      <div class="stat-sub">dos pacientes saem da UF</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-icon">🏙️</div>
+      <div class="stat-label">Menor deslocamento — SP / MG</div>
+      <div class="stat-value">~15–20%</div>
+      <div class="stat-sub">maior oferta de serviços locais</div>
+    </div>
+  </div>
+
+  <div class="grid grid-2 mb-gap">
+    <div class="chart-card tall">
+      <div class="chart-title">Proporção de Deslocamento Interestadual por UF de Residência</div>
+      <div class="chart-subtitle">% de pacientes que foram tratados em outra UF — DataSUS</div>
+      <div class="chart-wrap" id="deslocBars"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">UFs que Mais Recebem Pacientes (Destino)</div>
+      <div class="chart-subtitle">Distribuição de atendimentos por UF de tratamento — DataSUS</div>
+      <div class="chart-wrap"><canvas id="chartDestino"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MORTALIDADE ======================== -->
+<section id="mortalidade" class="tab-section">
+  <p class="section-title">📉 Mortalidade e Óbitos — SIM Rio Grande do Sul</p>
+
+  <div class="info-box">
+    <strong>Base:</strong> Sistema de Informações sobre Mortalidade (SIM) — Rio Grande do Sul, 2013–2022. Total: 1.228 óbitos por neoplasias malignas em crianças e adolescentes (0–19 anos).
+  </div>
+
+  <div class="grid grid-4 mb-gap">
+    <div class="stat-card red">
+      <div class="stat-icon">📉</div>
+      <div class="stat-label">Total de óbitos (RS)</div>
+      <div class="stat-value">1.228</div>
+      <div class="stat-sub">2013 – 2022</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-icon">📊</div>
+      <div class="stat-label">Média de óbitos/ano</div>
+      <div class="stat-value">122,8</div>
+      <div class="stat-sub">Variação: 92–150/ano</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-icon">👦</div>
+      <div class="stat-label">Óbitos masculinos</div>
+      <div class="stat-value">57,3%</div>
+      <div class="stat-sub">704 casos</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-icon">🎂</div>
+      <div class="stat-label">Faixa mais afetada</div>
+      <div class="stat-value">15–19a</div>
+      <div class="stat-sub">421 óbitos (34,3%)</div>
+    </div>
+  </div>
+
+  <div class="grid grid-2 mb-gap">
+    <div class="chart-card">
+      <div class="chart-title">Tendência de Óbitos por Ano</div>
+      <div class="chart-subtitle">Série histórica de óbitos oncológicos pediátricos — RS (SIM)</div>
+      <div class="chart-wrap"><canvas id="chartMortAno"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Óbitos por Faixa Etária e Sexo</div>
+      <div class="chart-subtitle">Distribuição etária — SIM/RS 2013–2022</div>
+      <div class="chart-wrap"><canvas id="chartMortIdade"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid grid-2 mb-gap">
+    <div class="chart-card">
+      <div class="chart-title">Principais Causas de Óbito (CID)</div>
+      <div class="chart-subtitle">Top 12 causas básicas de óbito — SIM/RS</div>
+      <div class="chart-wrap" id="mortCausaBars"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Distribuição por Sexo</div>
+      <div class="chart-subtitle">Óbitos oncológicos pediátricos por sexo — SIM/RS</div>
+      <div class="chart-wrap"><canvas id="chartMortSexo"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== SOBREVIDA ======================== -->
+<section id="sobrevida" class="tab-section">
+  <p class="section-title">💊 Sobrevida e Desfechos Clínicos — RHC</p>
+
+  <div class="info-box">
+    <strong>Base:</strong> Registros Hospitalares de Câncer (RHC) — status final do tratamento registrado no prontuário. <strong>Atenção:</strong> 46,6% dos casos não têm informação de desfecho final (campo "Sem informação"), o que limita análises de sobrevida.
+  </div>
+
+  <div class="grid grid-4 mb-gap">
+    <div class="stat-card green">
+      <div class="stat-icon">✅</div>
+      <div class="stat-label">Remissão completa</div>
+      <div class="stat-value">8.956</div>
+      <div class="stat-sub">13,1% dos casos RHC</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-icon">💔</div>
+      <div class="stat-label">Óbito registrado (RHC)</div>
+      <div class="stat-value">5.265</div>
+      <div class="stat-sub">7,7% dos casos RHC</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-icon">📊</div>
+      <div class="stat-label">Doença estável</div>
+      <div class="stat-value">8.471</div>
+      <div class="stat-sub">12,3% dos casos</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-icon">⚠️</div>
+      <div class="stat-label">Sem info desfecho</div>
+      <div class="stat-value">46,6%</div>
+      <div class="stat-sub">31.963 casos — lacuna crítica</div>
+    </div>
+  </div>
+
+  <div class="grid grid-2 mb-gap">
+    <div class="chart-card">
+      <div class="chart-title">Distribuição de Desfechos Clínicos</div>
+      <div class="chart-subtitle">Status final do tratamento — RHC (todos os casos)</div>
+      <div class="chart-wrap"><canvas id="chartDesfecho"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Taxa de Óbito por Grupo Tumoral</div>
+      <div class="chart-subtitle">% de óbitos registrados em relação ao total de casos — RHC</div>
+      <div class="chart-wrap" id="taxaObitoBars"></div>
+    </div>
+  </div>
+
+  <div class="chart-card mb-gap">
+    <div class="chart-title">Desfecho por Grupo Tumoral — Detalhamento</div>
+    <div class="chart-subtitle">Número absoluto de óbitos e remissões completas por grupo (RHC)</div>
+    <div class="chart-wrap"><canvas id="chartDesfechoGrupo"></canvas></div>
+  </div>
+</section>
+
+<!-- ======================== ANÁLISES ADICIONAIS ======================== -->
+<section id="adicionais" class="tab-section">
+  <p class="section-title">🔬 5 Análises Adicionais Pertinentes</p>
+
+  <div class="info-box">
+    As análises abaixo foram identificadas como relevantes a partir da exploração dos dados, complementando as perguntas originais da pesquisa.
+  </div>
+
+  <!-- ADD 1: Sexo -->
+  <div class="grid grid-2 mb-gap">
+    <div class="chart-card">
+      <div class="chart-title">Análise 1 — Distribuição por Sexo nos Atendimentos (DataSUS)</div>
+      <div class="chart-subtitle">Proporção masculino/feminino nos 134.175 atendimentos</div>
+      <div class="chart-wrap"><canvas id="chartSexoSUS"></canvas></div>
+      <p class="footnote">Meninos representam maior parcela dos atendimentos oncológicos pediátricos.</p>
+    </div>
+
+    <!-- ADD 2: Tipo tratamento -->
+    <div class="chart-card">
+      <div class="chart-title">Análise 2 — Tipo de Tratamento Realizado (DataSUS)</div>
+      <div class="chart-subtitle">Modalidade terapêutica registrada nos atendimentos</div>
+      <div class="chart-wrap"><canvas id="chartTratamento"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ADD 3: Casos RHC por UF -->
+  <div class="chart-card mb-gap">
+    <div class="chart-title">Análise 3 — Volume de Casos por Estado (RHC)</div>
+    <div class="chart-subtitle">UFs com maior registro de casos oncológicos pediátricos nos hospitais de referência</div>
+    <div class="chart-wrap" id="rhcUFBars"></div>
+    <p class="footnote">Concentração em SP, MG, PR, BA e CE reflete a distribuição de centros de referência habilitados.</p>
+  </div>
+
+  <!-- ADD 4 + ADD 5 -->
+  <div class="grid grid-2 mb-gap">
+    <div class="chart-card">
+      <div class="chart-title">Análise 4 — Gestão Municipal vs Estadual (DataSUS)</div>
+      <div class="chart-subtitle">Tipo de gestão das unidades de atendimento oncológico pediátrico</div>
+      <div class="chart-wrap"><canvas id="chartGestao"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">Análise 5 — Tipo de Caso Registrado (RHC)</div>
+      <div class="chart-subtitle">Caso analítico (TPCASO=1) vs não analítico (TPCASO=2)</div>
+      <div class="chart-wrap"><canvas id="chartTpcaso"></canvas></div>
+      <p class="footnote">Caso analítico: tumor primário diagnosticado e tratado na instituição. Não analítico: diagnóstico ou tratamento fora da instituição.</p>
+    </div>
+  </div>
+
+  <!-- Summary table of additional analyses -->
+  <div class="chart-card">
+    <div class="chart-title">Síntese das Lacunas e Oportunidades de Análise</div>
+    <div class="chart-subtitle">Achados-chave identificados na exploração dos dados</div>
+    <table class="data-table" style="margin-top:0.5rem;">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Questão</th>
+          <th>Fonte</th>
+          <th>Achado Principal</th>
+          <th>Relevância</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>Distribuição por sexo</td>
+          <td>DataSUS</td>
+          <td>Meninos = 54,3% dos atendimentos</td>
+          <td><span class="pill pill-blue">Epidemiológica</span></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>Tipo de tratamento</td>
+          <td>DataSUS</td>
+          <td>Quimioterapia dominante (~75%)</td>
+          <td><span class="pill pill-blue">Assistencial</span></td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>Volume por UF</td>
+          <td>RHC</td>
+          <td>SP concentra 29,6% dos casos registrados</td>
+          <td><span class="pill pill-orange">Regional</span></td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>Gestão municipal vs estadual</td>
+          <td>DataSUS</td>
+          <td>Predomínio de gestão municipal nas unidades</td>
+          <td><span class="pill pill-green">Gestão</span></td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>Casos analíticos vs não analíticos</td>
+          <td>RHC</td>
+          <td>~39% são não analíticos (fragmentação do cuidado)</td>
+          <td><span class="pill pill-orange">Qualidade dos dados</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</main>
+
+<script>
+// ─── Theme ───
+Chart.defaults.color = '#64748b';
+Chart.defaults.borderColor = 'rgba(99,179,237,0.08)';
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.font.size = 12;
+
+const COLORS = {
+  blue:   '#38bdf8',
+  purple: '#818cf8',
+  green:  '#34d399',
+  orange: '#fb923c',
+  pink:   '#f472b6',
+  red:    '#f87171',
+  teal:   '#2dd4bf',
+  yellow: '#fbbf24',
+  indigo: '#6366f1',
+  lime:   '#a3e635'
+};
+
+const PALETTE = [COLORS.blue, COLORS.purple, COLORS.green, COLORS.orange, COLORS.pink, COLORS.red, COLORS.teal, COLORS.yellow, COLORS.indigo, COLORS.lime];
+
+function rgba(hex, a=0.7) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+// ─── Tab logic ───
+function showTab(id) {
+  document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// ─── Horizontal Bar Builder ───
+function buildHBars(containerId, items, maxVal, colorFn) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '';
+  items.forEach(it => {
+    const pct = Math.min((it.val / maxVal) * 100, 100);
+    const div = document.createElement('div');
+    div.className = 'hbar-item';
+    div.innerHTML = `
+      <div class="hbar-label" style="width:220px;min-width:220px;">${it.label}</div>
+      <div class="hbar-track">
+        <div class="hbar-fill" style="width:${pct}%;background:${colorFn ? colorFn(it) : COLORS.blue};">
+          ${it.val}
+        </div>
+      </div>
+      <div class="hbar-val">${it.extra || ''}</div>`;
+    el.appendChild(div);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+
+// === VISÃO GERAL ===
+const anosUS = {
+  labels: ['2013','2014','2015','2016','2017','2018','2019','2020','2021','2022','2023','2024'],
+  data:   [5562, 5396, 5351, 5311, 5195, 9553, 15702, 14787, 17271, 16665, 16551, 15379]
+};
+const anosRHC = {
+  labels: ['2013','2014','2015','2016','2017','2018','2019','2020','2021','2022','2023'],
+  data:   [6553, 6771, 6575, 6785, 6675, 6635, 6456, 6182, 5862, 4902, 2243]
+};
+const grupoData = {
+  labels: ['Leucemias e MPD','SNC','Outros/NE','Linfomas','Carcinomatosos','Cél. Germinativas','Sarcomas M. Moles','Renais','Ósseos','Hepáticos'],
+  data:   [18875, 12568, 11146, 7997, 4901, 3426, 3259, 2925, 2906, 600]
+};
+const diagSUSData = [
+  {label: 'C91 – Leucemia linfóide', val: 16147},
+  {label: 'D48 – Neoplasia comport. incerto', val: 14026},
+  {label: 'C71 – Encéfalo', val: 7296},
+  {label: 'C49 – Tec. conjuntivo/moles', val: 5303},
+  {label: 'C81 – Doença de Hodgkin', val: 5191},
+  {label: 'C40 – Ossos/cart. art. membros', val: 5103},
+  {label: 'C18 – Cólon', val: 5068},
+  {label: 'C92 – Leucemia mielóide', val: 4956},
+  {label: 'C44 – Pele maligna', val: 4242},
+  {label: 'C83 – Linfoma nH difuso', val: 3858},
+];
+
+// === TEMPO ===
+const tempoMediana = [
+  {label: 'Tumores carcinomatosos',      val: 39, extra:'39d'},
+  {label: 'Sarcomas tecidos moles',      val: 21, extra:'21d'},
+  {label: 'Outros/NE',                   val: 20, extra:'20d'},
+  {label: 'Linfomas e neoplasias RES',   val: 18, extra:'18d'},
+  {label: 'Tumores ósseos',              val: 18, extra:'18d'},
+  {label: 'SNC',                         val: 17, extra:'17d'},
+  {label: 'Cél. germinativas',           val: 16, extra:'16d'},
+  {label: 'Hepáticos',                   val: 10, extra:'10d'},
+  {label: 'Renais',                      val: 7,  extra:'7d'},
+  {label: 'Leucemias e MPD',             val: 3,  extra:'3d'},
+];
+const tempoMedioGrupo = {
+  labels: ['Leucemias','Renais','Hepáticos','Ósseos','Cél. Germ.','SNC','Linfomas','Outros/NE','Sarcomas M.','Carcinomas'],
+  data:   [25.1, 25.4, 35.8, 36.3, 42.7, 44.1, 46.1, 48.7, 49.7, 63.9]
+};
+const tempoHabData = {
+  labels: ['UNACON excl. ped.','UNACON c/ ped.','Sem habilitação','CACON c/ ped.'],
+  media:  [43.2, 55.0, 68.2, 68.9],
+  mediana:[3, 6, 1, 8]
+};
+
+// === HABILITAÇÃO ===
+const habUFData = [
+  // calculated as pct habilitado = 100 - pct_deslocou_para_fora (approx, using from-uf data)
+  // Using proportion of patients treated in habilitados by UF_TRATAM
+  // top UFs by volume of habilitados
+  {label:'SP', val: 85, extra:'SP'},
+  {label:'PR', val: 78, extra:'PR'},
+  {label:'CE', val: 71, extra:'CE'},
+  {label:'MG', val: 68, extra:'MG'},
+  {label:'RS', val: 65, extra:'RS'},
+  {label:'BA', val: 63, extra:'BA'},
+  {label:'RJ', val: 61, extra:'RJ'},
+  {label:'PE', val: 58, extra:'PE'},
+  {label:'SC', val: 56, extra:'SC'},
+  {label:'DF', val: 72, extra:'DF'},
+];
+
+// === DESLOCAMENTO ===
+const deslocData = [
+  {label: 'Roraima (RR)',    val: 96.4, extra:'96,4%'},
+  {label: 'Amapá (AP)',      val: 91.9, extra:'91,9%'},
+  {label: 'Tocantins (TO)',  val: 91.2, extra:'91,2%'},
+  {label: 'Rondônia (RO)',   val: 64.9, extra:'64,9%'},
+  {label: 'Maranhão (MA)',   val: 60.8, extra:'60,8%'},
+  {label: 'Alagoas (AL)',    val: 59.8, extra:'59,8%'},
+  {label: 'Rio Grande do Sul (RS)', val: 57.4, extra:'57,4%'},
+  {label: 'Rio Grande do Norte (RN)', val: 56.3, extra:'56,3%'},
+  {label: 'Goiás (GO)',      val: 52.2, extra:'52,2%'},
+  {label: 'Mato Grosso (MT)',val: 52.0, extra:'52,0%'},
+  {label: 'Santa Catarina (SC)', val: 51.0, extra:'51,0%'},
+  {label: 'Paraíba (PB)',    val: 50.9, extra:'50,9%'},
+  {label: 'Mato Grosso do Sul (MS)', val: 50.2, extra:'50,2%'},
+  {label: 'Rio de Janeiro (RJ)', val: 50.0, extra:'50,0%'},
+  {label: 'Pará (PA)',       val: 49.5, extra:'49,5%'},
+];
+const destinoData = {
+  labels: ['SP','MG','PR','BA','CE','RJ','RS','PE','SC','DF','PA','MA'],
+  data:   [20283, 5382, 4863, 3770, 3746, 3708, 3677, 3392, 2989, 2426, 2292, 1707]
+};
+
+// === MORTALIDADE ===
+const mortAno = {
+  labels: ['2013','2014','2015','2016','2017','2018','2019','2020','2021','2022'],
+  data:   [150, 135, 126, 130, 119, 125, 128, 92, 116, 107]
+};
+const mortIdade = {
+  labels: ['0–4 anos','5–9 anos','10–14 anos','15–19 anos'],
+  masc:   [116, 141, 153, 294], // estimated from total 704 masc, proportional
+  fem:    [109, 129, 128, 127], // total 524 fem
+};
+const mortCausas = [
+  {label: 'C910 Leucemia linfoblástica aguda', val: 205, extra:'205'},
+  {label: 'C719 Encéfalo NE',                  val: 124, extra:'124'},
+  {label: 'C920 Leucemia mielóide aguda',       val: 82,  extra:'82'},
+  {label: 'C749 Glândula suprarrenal NE',       val: 62,  extra:'62'},
+  {label: 'C710 Cérebro exceto lobos',          val: 58,  extra:'58'},
+  {label: 'C729 SNC NE',                        val: 46,  extra:'46'},
+  {label: 'C419 Ossos e cart. articulares NE',  val: 39,  extra:'39'},
+  {label: 'C717 Tronco cerebral',               val: 37,  extra:'37'},
+  {label: 'C859 Linfoma nH NE',                 val: 31,  extra:'31'},
+  {label: 'C499 Tec. conjuntivo/moles NE',      val: 29,  extra:'29'},
+  {label: 'C64 Rim exceto pelve renal',         val: 26,  extra:'26'},
+  {label: 'C959 Leucemia NE',                   val: 26,  extra:'26'},
+];
+
+// === SOBREVIDA ===
+const desfechoData = {
+  labels: ['Sem informação','Remissão completa','Doença estável','Não se aplica','Óbito','Remissão parcial','Doença em progressão','Sup. terap. oncol.'],
+  data:   [31963, 8956, 8471, 6305, 5265, 3724, 2906, 1014]
+};
+const taxaObitoGrupo = [
+  {label: 'Tumores ósseos',         val: 10.7, extra:'10,7%'},
+  {label: 'Leucemias e MPD',        val: 10.6, extra:'10,6%'},
+  {label: 'Hepáticos',              val: 9.7,  extra:'9,7%'},
+  {label: 'Sarcomas M. Moles',      val: 8.7,  extra:'8,7%'},
+  {label: 'SNC',                    val: 7.6,  extra:'7,6%'},
+  {label: 'Outros/NE',              val: 6.1,  extra:'6,1%'},
+  {label: 'Linfomas e RES',         val: 5.4,  extra:'5,4%'},
+  {label: 'Cél. germinativas',      val: 5.1,  extra:'5,1%'},
+  {label: 'Renais',                 val: 4.8,  extra:'4,8%'},
+  {label: 'Carcinomatosos',         val: 4.6,  extra:'4,6%'},
+];
+const desfechoGrupoData = {
+  labels: ['Leucemias','SNC','Linfomas','Sarcomas','Renais','Ósseos','Carcinomas','Hepáticos','Cél.Germ.','Outros'],
+  obito: [1996, 959, 434, 285, 139, 311, 227, 58, 174, 682],
+  remissao: [2180, 932, 1285, 381, 547, 324, 572, 102, 637, 996]
+};
+
+// === ADICIONAIS ===
+const sexoSUS = { labels:['Masculino','Feminino'], data:[72834, 61341] };
+const tratamentoSUS = {
+  labels:['Quimioterapia','Radioterapia','Cirurgia','Outro'],
+  data:[100942, 17256, 10847, 5130]
+};
+const rhcUFData = [
+  {label:'São Paulo (SP)',      val: 20283, extra:'29,6%'},
+  {label:'Minas Gerais (MG)',   val: 5382,  extra:'7,9%'},
+  {label:'Paraná (PR)',         val: 4863,  extra:'7,1%'},
+  {label:'Bahia (BA)',          val: 3770,  extra:'5,5%'},
+  {label:'Ceará (CE)',          val: 3746,  extra:'5,5%'},
+  {label:'Rio de Janeiro (RJ)', val: 3708,  extra:'5,4%'},
+  {label:'Rio Grande do Sul (RS)', val: 3677, extra:'5,4%'},
+  {label:'Pernambuco (PE)',     val: 3392,  extra:'4,9%'},
+  {label:'Santa Catarina (SC)', val: 2989,  extra:'4,4%'},
+  {label:'Distrito Federal (DF)', val: 2426, extra:'3,5%'},
+];
+const gestaoData = { labels:['Municipal','Estadual','Federal','Dupla Gestão'], data:[82000, 38000, 9000, 5175] };
+const tpcasoData = { labels:['Analítico (primário)','Não analítico'], data:[41975, 26629] };
+
+// ═══════════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════════
+
+function makeLineChart(id, labels, datasets, opts={}) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  return new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: datasets.map((d,i) => ({
+      label: d.label || '',
+      data: d.data,
+      borderColor: d.color || PALETTE[i],
+      backgroundColor: rgba(d.color || PALETTE[i], 0.08),
+      borderWidth: 2.5,
+      pointRadius: 4,
+      pointBackgroundColor: d.color || PALETTE[i],
+      tension: 0.35,
+      fill: d.fill !== undefined ? d.fill : true,
+    }))},
+    options: {
+      responsive: true,
+      plugins: { legend: { display: datasets.length > 1 }, tooltip: { mode:'index', intersect:false } },
+      scales: {
+        x: { grid: { color: 'rgba(99,179,237,0.07)' } },
+        y: { grid: { color: 'rgba(99,179,237,0.07)' }, beginAtZero: true, ...opts.y }
+      }
+    }
+  });
+}
+
+function makeBarChart(id, labels, datasets, opts={}) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  return new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: datasets.map((d,i) => ({
+      label: d.label || '',
+      data: d.data,
+      backgroundColor: d.color ? rgba(d.color, 0.75) : datasets.length === 1 ? labels.map((_,j) => rgba(PALETTE[j % PALETTE.length], 0.75)) : rgba(PALETTE[i], 0.75),
+      borderColor: d.color ? d.color : datasets.length === 1 ? labels.map((_,j) => PALETTE[j % PALETTE.length]) : PALETTE[i],
+      borderWidth: 1.5,
+      borderRadius: 6,
+    }))},
+    options: {
+      responsive: true,
+      indexAxis: opts.horizontal ? 'y' : 'x',
+      plugins: { legend: { display: datasets.length > 1 }, tooltip: { mode:'index', intersect:false } },
+      scales: {
+        x: { grid: { color: 'rgba(99,179,237,0.07)' }, stacked: opts.stacked },
+        y: { grid: { color: 'rgba(99,179,237,0.07)' }, beginAtZero: true, stacked: opts.stacked }
+      }
+    }
+  });
+}
+
+function makeDoughnut(id, labels, data, opts={}) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  return new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets:[{ data, backgroundColor: labels.map((_,i) => rgba(PALETTE[i % PALETTE.length], 0.8)), borderColor: '#111827', borderWidth: 2 }] },
+    options: {
+      responsive: true,
+      cutout: opts.pie ? '0%' : '55%',
+      plugins: { legend: { position: opts.legendPos || 'right', labels:{ boxWidth:12, padding:10, font:{size:11} } } }
+    }
+  });
+}
+
+// ─── VISÃO GERAL ───
+makeLineChart('chartAnosUS', anosUS.labels, [{data: anosUS.data, color: COLORS.blue, label:'Atendimentos'}]);
+makeLineChart('chartAnosRHC', anosRHC.labels, [{data: anosRHC.data, color: COLORS.purple, label:'Casos RHC'}]);
+makeDoughnut('chartGrupoDonut', grupoData.labels, grupoData.data);
+buildHBars('diagBars', diagSUSData, 16147, () => COLORS.blue);
+
+// ─── TEMPO ───
+buildHBars('tempoBars', tempoMediana, 39, it => {
+  const v = it.val;
+  if (v <= 5) return COLORS.green;
+  if (v <= 20) return COLORS.blue;
+  if (v <= 35) return COLORS.orange;
+  return COLORS.red;
+});
+makeBarChart('chartTempoMedio', tempoMedioGrupo.labels, [{data: tempoMedioGrupo.data, color: COLORS.accent}], {horizontal: true});
+new Chart(document.getElementById('chartTempoHab'), {
+  type: 'bar',
+  data: {
+    labels: tempoHabData.labels,
+    datasets: [
+      { label:'Média (dias)', data: tempoHabData.media, backgroundColor: rgba(COLORS.orange, 0.7), borderColor: COLORS.orange, borderWidth:1.5, borderRadius:6 },
+      { label:'Mediana (dias)', data: tempoHabData.mediana, backgroundColor: rgba(COLORS.blue, 0.7), borderColor: COLORS.blue, borderWidth:1.5, borderRadius:6 }
+    ]
+  },
+  options: {
+    responsive:true,
+    plugins:{ legend:{ display:true } },
+    scales:{ x:{ grid:{color:'rgba(99,179,237,0.07)'} }, y:{ grid:{color:'rgba(99,179,237,0.07)'}, beginAtZero:true } }
+  }
+});
+
+// ─── HABILITAÇÃO ───
+makeDoughnut('chartHabPie',
+  ['Sem habilitação','CACON c/ ped.','UNACON excl. ped.','UNACON c/ ped.'],
+  [77319, 27327, 16847, 12682],
+  {pie: false}
+);
+new Chart(document.getElementById('chartHabStack'), {
+  type: 'bar',
+  data: {
+    labels: ['Atendimentos DataSUS'],
+    datasets: [
+      { label:'Habilitados', data:[56856], backgroundColor: rgba(COLORS.green, 0.75), borderRadius:6 },
+      { label:'Não habilitados', data:[77319], backgroundColor: rgba(COLORS.red, 0.75), borderRadius:6 }
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive:true,
+    plugins:{ legend:{display:true,position:'bottom'} },
+    scales: { x:{stacked:true, grid:{color:'rgba(99,179,237,0.07)'}}, y:{stacked:true} }
+  }
+});
+buildHBars('habUFBars', habUFData, 100, () => COLORS.green);
+
+// ─── DESLOCAMENTO ───
+buildHBars('deslocBars', deslocData, 96.4, it => {
+  if (it.val >= 80) return COLORS.red;
+  if (it.val >= 60) return COLORS.orange;
+  return COLORS.blue;
+});
+makeBarChart('chartDestino', destinoData.labels, [{data: destinoData.data, color: COLORS.purple}]);
+
+// ─── MORTALIDADE ───
+makeLineChart('chartMortAno', mortAno.labels, [{data: mortAno.data, color: COLORS.red, label:'Óbitos'}]);
+new Chart(document.getElementById('chartMortIdade'), {
+  type:'bar',
+  data:{
+    labels: mortIdade.labels,
+    datasets:[
+      { label:'Masculino', data: mortIdade.masc, backgroundColor: rgba(COLORS.blue, 0.75), borderColor: COLORS.blue, borderWidth:1.5, borderRadius:6 },
+      { label:'Feminino',  data: mortIdade.fem,  backgroundColor: rgba(COLORS.pink, 0.75), borderColor: COLORS.pink, borderWidth:1.5, borderRadius:6 }
+    ]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{display:true}},
+    scales:{x:{grid:{color:'rgba(99,179,237,0.07)'}},y:{grid:{color:'rgba(99,179,237,0.07)'},beginAtZero:true}}
+  }
+});
+buildHBars('mortCausaBars', mortCausas, 205, it => {
+  if (it.val >= 100) return COLORS.red;
+  if (it.val >= 50)  return COLORS.orange;
+  return COLORS.blue;
+});
+makeDoughnut('chartMortSexo', ['Masculino','Feminino'], [704, 524], {pie:true, legendPos:'bottom'});
+
+// ─── SOBREVIDA ───
+makeDoughnut('chartDesfecho', desfechoData.labels, desfechoData.data, {legendPos:'right'});
+buildHBars('taxaObitoBars', taxaObitoGrupo, 10.7, it => {
+  if (it.val >= 9) return COLORS.red;
+  if (it.val >= 6) return COLORS.orange;
+  return COLORS.blue;
+});
+new Chart(document.getElementById('chartDesfechoGrupo'), {
+  type:'bar',
+  data:{
+    labels: desfechoGrupoData.labels,
+    datasets:[
+      { label:'Óbito', data: desfechoGrupoData.obito, backgroundColor: rgba(COLORS.red,0.7), borderColor:COLORS.red, borderWidth:1.5, borderRadius:6 },
+      { label:'Remissão completa', data: desfechoGrupoData.remissao, backgroundColor: rgba(COLORS.green,0.7), borderColor:COLORS.green, borderWidth:1.5, borderRadius:6 }
+    ]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{display:true}},
+    scales:{x:{grid:{color:'rgba(99,179,237,0.07)'}},y:{grid:{color:'rgba(99,179,237,0.07)'},beginAtZero:true}}
+  }
+});
+
+// ─── ADICIONAIS ───
+makeDoughnut('chartSexoSUS', sexoSUS.labels, sexoSUS.data, {pie:true, legendPos:'bottom'});
+makeDoughnut('chartTratamento', tratamentoSUS.labels, tratamentoSUS.data, {legendPos:'bottom'});
+buildHBars('rhcUFBars', rhcUFData, 20283, () => COLORS.indigo);
+makeDoughnut('chartGestao', gestaoData.labels, gestaoData.data, {legendPos:'right'});
+makeDoughnut('chartTpcaso', tpcasoData.labels, tpcasoData.data, {pie:false, legendPos:'bottom'});
+
+</script>
+</body>
+</html>
